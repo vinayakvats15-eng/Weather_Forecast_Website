@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <div class="search">
+            <input type="text" placeholder="enter city name"
+            spellcheck="false">
+            <button><img src="search.png"></button>
+        </div>
+        <div class="error">
+            <p>Invalid city name</p>
+        </div>
+
+        <div class="weather">
+            <img src="rain.png" class="weather-icon">
+            <h2 class="temp">22°C</h2>
+            <h3 class="city">Chandigarh</h3>
+
+            <div class="details">
+                <div class="col">
+                    <img src="humidity.png">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <img src="wind.png">
+                    <div>
+                        <p class="wind">50%</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "f6d16fcb81c8208ba96ab7738785faaf";
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+        const searchBox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const weatherIcon = document.querySelector(".weather-icon");
+
+        async function checkWeather(city) {
+            const errorBox = document.querySelector(".error");
+            const weatherBox = document.querySelector(".weather");
+
+            // Hide previous results before searching again
+            errorBox.style.display = "none";
+            weatherBox.style.display = "none";
+
+            if (city.trim() === "") {
+                errorBox.querySelector("p").innerHTML = "Please enter a city name";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    apiUrl + encodeURIComponent(city.trim()) + `&appid=${apiKey}`
+                );
+
+                const data = await response.json();
+
+                if (response.status === 404) {
+                    errorBox.querySelector("p").innerHTML = "Invalid city name";
+                    errorBox.style.display = "block";
+                    return;
+                }
+
+                if (!response.ok) {
+                    errorBox.querySelector("p").innerHTML =
+                        data.message || "Unable to fetch weather";
+                    errorBox.style.display = "block";
+                    return;
+                }
+
+                console.log(data);
+
+                document.querySelector(".city").innerHTML = data.name;
+                document.querySelector(".temp").innerHTML = data.main.temp + "°C";
+                document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+                document.querySelector(".wind").innerHTML = data.wind.speed + " m/s";
+
+                if (data.weather[0].main == "Clouds") {
+                    weatherIcon.src = "cloud.png";
+                }
+                else if (data.weather[0].main == "Rain") {
+                    weatherIcon.src = "rain.png";
+                }
+                else if (data.weather[0].main == "Drizzle") {
+                    weatherIcon.src = "drizzle.png";
+                }
+                else if (data.weather[0].main == "Mist") {
+                    weatherIcon.src = "mist.png";
+                }
+
+                weatherBox.style.display = "block";
+                errorBox.style.display = "none";
+
+            } catch (error) {
+                errorBox.querySelector("p").innerHTML =
+                    "Network error. Please check your connection.";
+                errorBox.style.display = "block";
+                weatherBox.style.display = "none";
+                console.error(error);
+            }
+        }
+
+        searchBtn.addEventListener("click", () => {
+            checkWeather(searchBox.value);
+        });
+    </script>
+</body>
+</html>
